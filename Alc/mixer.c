@@ -108,6 +108,23 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     ALuint SampleSize;
     ALint64 DataSize64;
     ALuint chan, j;
+    ALuint DeviceClockOffset;
+
+    DeviceClockOffset = 0;
+    if( Source->PlayOnDeviceClock )
+    {
+        // check if need to trigger
+        if( Device->OutputSampleCount + SamplesToDo >= Source->PlayOnDeviceClock )
+        {
+            DeviceClockOffset = (ALuint)( Source->PlayOnDeviceClock - Device->OutputSampleCount );
+            Source->PlayOnDeviceClock = 0; //reset
+        }
+        else
+        {
+            // don't play
+            return;
+        }
+    }
 
     /* Get source info */
     State         = Source->state;
@@ -125,7 +142,7 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     for(j = 0;j < BuffersPlayed;j++)
         BufferListItem = BufferListItem->next;
 
-    OutPos = 0;
+    OutPos = DeviceClockOffset;
     do {
         const ALuint BufferPrePadding = ResamplerPrePadding[Resampler];
         const ALuint BufferPadding = ResamplerPadding[Resampler];

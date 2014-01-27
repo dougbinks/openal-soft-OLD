@@ -107,6 +107,8 @@ typedef struct ALsource
     volatile ALfloat RoomRolloffFactor;
     volatile ALfloat DopplerFactor;
 
+    volatile ALuint64 PlayOnDeviceClock; // AL_PLAY_ON_DEVICE_CLOCK_SOFT
+
     enum Resampler Resampler;
 
     /**

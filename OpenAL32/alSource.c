@@ -804,9 +804,15 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SrcIntProp
         case siSampleRWOffsetsSOFT:
         case siByteRWOffsetsSOFT:
         case siSampleOffsetLatencySOFT:
+        case siSampleOffsetDeviceClockSOFT:
+        case siSampleOffsetLatencyDeviceClockSOFT:
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
+        /* 1x int64 */
+        case    AL_PLAY_ON_DEVICE_CLOCK_SOFT:
+            Source->PlayOnDeviceClock = values[0];
+            return AL_TRUE;
 
         /* 1x int */
         case AL_SOURCE_RELATIVE:
@@ -2291,6 +2297,8 @@ static ALvoid InitSourceParams(ALsource *Source)
     Source->DirectChannels = AL_FALSE;
 
     Source->DistanceModel = DefaultDistanceModel;
+
+    Source->PlayOnDeviceClock = 0;
 
     Source->Resampler = DefaultResampler;
 

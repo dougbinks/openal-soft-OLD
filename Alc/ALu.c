@@ -1040,9 +1040,6 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
         ALCdevice_Lock(device);
         V(device->Synth,process)(SamplesToDo, device->DryBuffer);
         
-        // Store output sample count for device timing
-        device->OutputSampleCount += SamplesToDo;
-
         ctx = device->ContextList;
         while(ctx)
         {
@@ -1074,6 +1071,9 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
                 MixSource(*src, device, SamplesToDo);
                 src++;
             }
+
+            // Store output sample count for device timing after mix
+            device->OutputSampleCount += SamplesToDo;
 
             /* effect slot processing */
             slot = ctx->ActiveEffectSlots;
