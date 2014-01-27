@@ -992,4 +992,8 @@ IF(ALSOFT_EXAMPLES)
         MESSAGE(STATUS "Building example programs")
         MESSAGE(STATUS "")
     ENDIF()
+	
+	# exmples which do not need SDL
+	ADD_EXECUTABLE(aldeviceclock examples/aldeviceclock.c)
+    TARGET_LINK_LIBRARIES(aldeviceclock ${LIBNAME})
 ENDIF()
