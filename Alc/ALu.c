@@ -1039,6 +1039,9 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
 
         ALCdevice_Lock(device);
         V(device->Synth,process)(SamplesToDo, device->DryBuffer);
+        
+        // Store output sample count for device timing
+        device->OutputSampleCount += SamplesToDo;
 
         ctx = device->ContextList;
         while(ctx)

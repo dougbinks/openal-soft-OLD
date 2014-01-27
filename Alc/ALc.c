@@ -706,7 +706,8 @@ static const ALchar alExtList[] =
     "AL_EXT_MULAW_MCFORMATS AL_EXT_OFFSET AL_EXT_source_distance_model "
     "AL_LOKI_quadriphonic AL_SOFT_buffer_samples AL_SOFT_buffer_sub_data "
     "AL_SOFT_deferred_updates AL_SOFT_direct_channels AL_SOFT_loop_points "
-    "AL_SOFT_source_latency";
+    "AL_SOFT_source_latency "
+    "AL_SOFT_device_clock";
 
 static volatile ALCenum LastNullDeviceError = ALC_NO_ERROR;
 
@@ -2952,6 +2953,9 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->Frequency = DEFAULT_OUTPUT_RATE;
     device->NumUpdates = 4;
     device->UpdateSize = 1024;
+
+    //Set output sample clock data
+    device->OutputSampleCount = 0;
 
     if(!PlaybackBackend.getFactory)
     {

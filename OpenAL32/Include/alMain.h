@@ -644,6 +644,9 @@ struct ALCdevice_struct
     BackendFuncs *Funcs;
     void         *ExtraData; // For the backend's use
 
+    // device timing information
+    ALuint64  OutputSampleCount;
+
     ALCdevice *volatile next;
 };
 

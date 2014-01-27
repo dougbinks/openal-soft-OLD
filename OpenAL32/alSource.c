@@ -146,6 +146,11 @@ typedef enum SrcIntProp {
 
     /* AL_SOFT_source_latency */
     siSampleOffsetLatencySOFT = AL_SAMPLE_OFFSET_LATENCY_SOFT,
+
+    /* AL_SOFT_device_clock */#
+    siSampleOffsetDeviceClockSOFT        = AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT,
+    siSampleOffsetLatencyDeviceClockSOFT = AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFT,
+    siPlayOnDeviceClockSOFT              = AL_PLAY_ON_DEVICE_CLOCK_SOFT,
 } SrcIntProp;
 
 static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SrcFloatProp prop, const ALfloat *values);
@@ -330,6 +335,7 @@ static ALint Int64ValsByProp(ALenum prop)
         case siDirectFilter:
         case siDirectChannelsSOFT:
         case siDistanceModel:
+        case siPlayOnDeviceClockSOFT:              
             return 1;
 
         case siSampleRWOffsetsSOFT:
@@ -342,6 +348,12 @@ static ALint Int64ValsByProp(ALenum prop)
         case siDirection:
         case siAuxSendFilter:
             return 3;
+
+        case siSampleOffsetDeviceClockSOFT:
+            return 4;
+
+        case siSampleOffsetLatencyDeviceClockSOFT:
+            return 5;
     }
     return 0;
 }
@@ -1130,6 +1142,8 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
     ALdouble dvals[3];
     ALint ivals[3];
     ALboolean err;
+    ALdouble updateLen;
+    ALdouble offsets[2];
 
     switch(prop)
     {
@@ -1139,6 +1153,28 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             values[1] = ALCdevice_GetLatency(Context->Device);
             UnlockContext(Context);
             return AL_TRUE;
+
+        case AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFT:
+            LockContext(Context);
+            values[0] = GetSourceOffset(Source);
+            values[1] = ALCdevice_GetLatency(Context->Device);
+            values[2] = Context->Device->OutputSampleCount;
+            values[3] = Context->Device->Frequency;
+            values[4] = Context->Device->UpdateSize;
+            UnlockContext(Context);
+            return AL_TRUE;
+        case AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT:
+            LockContext(Context);
+            updateLen = (ALdouble)Context->Device->UpdateSize /
+                        Context->Device->Frequency;
+            GetSourceOffsets(Source, AL_SAMPLE_OFFSET, offsets, updateLen);
+            values[0] = (ALint64)offsets[0];
+            values[1] = Context->Device->OutputSampleCount;
+            values[2] = Context->Device->Frequency;
+            values[3] = Context->Device->UpdateSize;
+            UnlockContext(Context);
+            return AL_TRUE;
+
 
         case AL_MAX_DISTANCE:
         case AL_ROLLOFF_FACTOR:
