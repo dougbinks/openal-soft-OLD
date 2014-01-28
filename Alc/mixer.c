@@ -108,15 +108,22 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     ALuint SampleSize;
     ALint64 DataSize64;
     ALuint chan, j;
-    ALuint DeviceClockOffset;
+    ALint OutPosOffsetAligned, OutPosOffsetUnalignedPortion;
 
-    DeviceClockOffset = 0;
+    OutPosOffsetAligned          = 0;
+    OutPosOffsetUnalignedPortion = 0;
     if( Source->PlayOnDeviceClock )
     {
         // check if need to trigger
         if( Device->OutputSampleCount + SamplesToDo >= Source->PlayOnDeviceClock )
         {
-            DeviceClockOffset = (ALuint)( Source->PlayOnDeviceClock - Device->OutputSampleCount );
+            OutPosOffsetAligned = (ALint)( Source->PlayOnDeviceClock - Device->OutputSampleCount );
+            if( OutPosOffsetAligned < 0 )
+            {
+                OutPosOffsetAligned = 0;
+            }
+            OutPosOffsetUnalignedPortion = OutPosOffsetAligned % 4; // SIMD align
+            OutPosOffsetAligned -= OutPosOffsetUnalignedPortion;
             Source->PlayOnDeviceClock = 0; //reset
         }
         else
@@ -142,7 +149,7 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     for(j = 0;j < BuffersPlayed;j++)
         BufferListItem = BufferListItem->next;
 
-    OutPos = DeviceClockOffset;
+    OutPos = OutPosOffsetAligned;
     do {
         const ALuint BufferPrePadding = ResamplerPrePadding[Resampler];
         const ALuint BufferPadding = ResamplerPadding[Resampler];
@@ -177,6 +184,12 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             ALfloat *SrcData = Device->SampleData1;
             ALfloat *ResampledData = Device->SampleData2;
             ALuint SrcDataSize = 0;
+
+            if( OutPosOffsetUnalignedPortion && ( OutPosOffsetAligned == OutPos))
+            {
+                SilenceData(&SrcData[SrcDataSize], OutPosOffsetUnalignedPortion);
+                SrcDataSize += OutPosOffsetUnalignedPortion;
+            }
 
             if(Source->SourceType == AL_STATIC)
             {
