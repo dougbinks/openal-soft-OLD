@@ -229,6 +229,13 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device);
 #endif
 
 
+#ifndef AL_SOFTX_device_clock
+#define AL_SOFTX_device_clock 1
+#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1202
+#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1203
+#define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1204
+#endif
+
 #ifdef IN_IDE_PARSER
 /* KDevelop's parser doesn't recognize the C99-standard restrict keyword, but
  * recent versions (at least 4.5.1) do recognize GCC's __restrict. */

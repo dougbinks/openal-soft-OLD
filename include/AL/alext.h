@@ -348,13 +348,6 @@ AL_API void AL_APIENTRY alGetSourcei64vSOFT(ALuint source, ALenum param, ALint64
 #endif
 #endif
 
-#ifndef AL_SOFT_device_clock
-#define AL_SOFT_device_clock 1
-#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT                    0x1202
-#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFT            0x1203
-#define AL_PLAY_ON_DEVICE_CLOCK_SOFT                          0x1204
-#endif
-
 #ifndef ALC_EXT_DEFAULT_FILTER_ORDER
 #define ALC_EXT_DEFAULT_FILTER_ORDER 1
 #define ALC_DEFAULT_FILTER_ORDER                 0x1100

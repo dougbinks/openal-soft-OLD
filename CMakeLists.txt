@@ -996,4 +996,5 @@ IF(ALSOFT_EXAMPLES)
 	# exmples which do not need SDL
 	ADD_EXECUTABLE(aldeviceclock examples/aldeviceclock.c)
     TARGET_LINK_LIBRARIES(aldeviceclock ${LIBNAME})
+	SET_PROPERTY(TARGET aldeviceclock APPEND PROPERTY INCLUDE_DIRECTORIES "${OpenAL_SOURCE_DIR}/OpenAL32/Include" "${OpenAL_SOURCE_DIR}/Alc")
 ENDIF()

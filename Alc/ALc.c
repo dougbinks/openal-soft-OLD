@@ -707,7 +707,7 @@ static const ALchar alExtList[] =
     "AL_LOKI_quadriphonic AL_SOFT_buffer_samples AL_SOFT_buffer_sub_data "
     "AL_SOFT_deferred_updates AL_SOFT_direct_channels AL_SOFT_loop_points "
     "AL_SOFT_source_latency "
-    "AL_SOFT_device_clock";
+    "AL_SOFTX_device_clock";
 
 static volatile ALCenum LastNullDeviceError = ALC_NO_ERROR;
 

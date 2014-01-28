@@ -32,7 +32,8 @@
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "AL/alext.h"
-
+#include "config.h" // for alMain.h, remove when move extension to alext.h
+#include "alMain.h" // move to alext.h when fully approved
 
 
 static LPALGETSOURCEI64VSOFT alGetSourcei64vSOFT;
@@ -112,9 +113,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if(!alIsExtensionPresent("AL_SOFT_device_clock"))
+    if(!alIsExtensionPresent("AL_SOFTX_device_clock"))
     {
-        fprintf(stderr, "Error: AL_SOFT_device_clock not supported\n");
+        fprintf(stderr, "Error: AL_SOFTX_device_clock not supported\n");
         CloseAL();
         return 1;
     }
@@ -156,13 +157,13 @@ int main(int argc, char **argv)
         Sleep(10);
         alGetSourcei(Sources[0], AL_SOURCE_STATE, &state);
 
-        alGetSourcei64vSOFT(Sources[0], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT, clockInfo);
-        alGetSourcei64vSOFT(Sources[1], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT, clockInfo2nd);
+        alGetSourcei64vSOFT(Sources[0], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo);
+        alGetSourcei64vSOFT(Sources[1], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo2nd);
         if( clockInfo[0] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
         {
             // want to play at a point where the second wave cancels first
             clockToPlay = clockInfo[1] - ( clockInfo[0] % (2 * WAVEHALFPERIOD) ) + ( 5 * WAVEHALFPERIOD );
-            alSourcei64SOFT( Sources[1], AL_PLAY_ON_DEVICE_CLOCK_SOFT, clockToPlay );
+            alSourcei64SOFT( Sources[1], AL_PLAY_ON_DEVICE_CLOCK_SOFTX, clockToPlay );
             alSourcePlay(Sources[1]);
             PlayingSecond = 1;
         }

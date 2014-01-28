@@ -147,10 +147,10 @@ typedef enum SrcIntProp {
     /* AL_SOFT_source_latency */
     siSampleOffsetLatencySOFT = AL_SAMPLE_OFFSET_LATENCY_SOFT,
 
-    /* AL_SOFT_device_clock */#
-    siSampleOffsetDeviceClockSOFT        = AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT,
-    siSampleOffsetLatencyDeviceClockSOFT = AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFT,
-    siPlayOnDeviceClockSOFT              = AL_PLAY_ON_DEVICE_CLOCK_SOFT,
+    /* AL_SOFTX_device_clock */#
+    siSampleOffsetDeviceClockSOFT        = AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX,
+    siSampleOffsetLatencyDeviceClockSOFT = AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX,
+    siPlayOnDeviceClockSOFT              = AL_PLAY_ON_DEVICE_CLOCK_SOFTX,
 } SrcIntProp;
 
 static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SrcFloatProp prop, const ALfloat *values);
@@ -810,7 +810,7 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SrcIntProp
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
 
         /* 1x int64 */
-        case    AL_PLAY_ON_DEVICE_CLOCK_SOFT:
+        case    AL_PLAY_ON_DEVICE_CLOCK_SOFTX:
             Source->PlayOnDeviceClock = values[0];
             return AL_TRUE;
 
@@ -1160,7 +1160,7 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             UnlockContext(Context);
             return AL_TRUE;
 
-        case AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFT:
+        case AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX:
             LockContext(Context);
             values[0] = GetSourceOffset(Source);
             values[1] = ALCdevice_GetLatency(Context->Device);
@@ -1169,7 +1169,7 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             values[4] = Context->Device->UpdateSize;
             UnlockContext(Context);
             return AL_TRUE;
-        case AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFT:
+        case AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX:
             LockContext(Context);
             updateLen = (ALdouble)Context->Device->UpdateSize /
                         Context->Device->Frequency;
