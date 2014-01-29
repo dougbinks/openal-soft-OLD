@@ -229,8 +229,8 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device);
 #endif
 
 
-#ifndef AL_SOFTX_device_clock
-#define AL_SOFTX_device_clock 1
+#ifndef ALC_SOFTX_device_clock
+#define ALC_SOFTX_device_clock 1
 #define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1202
 #define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1203
 #define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1204

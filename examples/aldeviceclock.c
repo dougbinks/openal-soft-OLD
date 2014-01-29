@@ -113,7 +113,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if(!alIsExtensionPresent("AL_SOFTX_device_clock"))
+    if(!alcIsExtensionPresent(pALDevice, "ALC_SOFTX_device_clock"))
     {
         fprintf(stderr, "Error: AL_SOFTX_device_clock not supported\n");
         CloseAL();

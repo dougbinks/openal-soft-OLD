@@ -706,8 +706,7 @@ static const ALchar alExtList[] =
     "AL_EXT_MULAW_MCFORMATS AL_EXT_OFFSET AL_EXT_source_distance_model "
     "AL_LOKI_quadriphonic AL_SOFT_buffer_samples AL_SOFT_buffer_sub_data "
     "AL_SOFT_deferred_updates AL_SOFT_direct_channels AL_SOFT_loop_points "
-    "AL_SOFT_source_latency "
-    "AL_SOFTX_device_clock";
+    "AL_SOFT_source_latency";
 
 static volatile ALCenum LastNullDeviceError = ALC_NO_ERROR;
 
@@ -746,7 +745,8 @@ static const ALCchar alcExtensionList[] =
     "ALC_ENUMERATE_ALL_EXT ALC_ENUMERATION_EXT ALC_EXT_CAPTURE "
     "ALC_EXT_DEDICATED ALC_EXT_disconnect ALC_EXT_EFX "
     "ALC_EXT_thread_local_context ALC_SOFTX_HRTF ALC_SOFT_loopback "
-    "ALC_SOFTX_midi_interface ALC_SOFTX_pause_device";
+    "ALC_SOFTX_midi_interface ALC_SOFTX_pause_device "
+    "ALC_SOFTX_device_clock";
 static const ALCint alcMajorVersion = 1;
 static const ALCint alcMinorVersion = 1;
 
