@@ -377,7 +377,7 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             }
         }
         /* Update positions */
-        for(j = 0;j < DstBufferSize;j++)
+        for(j = 0;j < (DstBufferSize - OutPosOffsetUnalignedPortion);j++)
         {
             DataPosFrac += increment;
             DataPosInt  += DataPosFrac>>FRACTIONBITS;

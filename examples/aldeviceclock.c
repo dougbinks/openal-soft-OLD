@@ -39,7 +39,7 @@
 static LPALGETSOURCEI64VSOFT alGetSourcei64vSOFT;
 static LPALGETSOURCEI64VSOFT alSourcei64SOFT;
 
-#define WAVEHALFPERIOD 256
+#define WAVEHALFPERIOD 276
 #define BUFFSIZE       102400
 
 static ALCdevice*          pALDevice;
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
         if( clockInfo[1] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
         {
             // want to play at a point where the second wave cancels first
-            clockToPlay = clockInfo[0] - ( clockInfo[1] % (2 * WAVEHALFPERIOD) ) + ( 5 * WAVEHALFPERIOD );
+            clockToPlay = clockInfo[0] - ( clockInfo[1] % (2 * WAVEHALFPERIOD) ) + ( 51 * WAVEHALFPERIOD );
             alSourcei64SOFT( Sources[1], AL_PLAY_ON_DEVICE_CLOCK_SOFTX, clockToPlay );
             alSourcePlay(Sources[1]);
             PlayingSecond = 1;
