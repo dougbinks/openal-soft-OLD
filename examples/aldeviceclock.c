@@ -163,8 +163,7 @@ int main(int argc, char **argv)
         {
             // want to play at a point where the second wave cancels first
             clockToPlay = clockInfo[0] - ( clockInfo[1] % (2 * WAVEHALFPERIOD) ) + ( 51 * WAVEHALFPERIOD );
-            alSourcei64SOFT( Sources[1], AL_PLAY_ON_DEVICE_CLOCK_SOFTX, clockToPlay );
-            alSourcePlay(Sources[1]);
+            alSourcePlayTimeSOFTX(clockToPlay, Sources[1]);
             PlayingSecond = 1;
         }
         printf("%lld, %lld, %lld, %lld\n", clockInfo[0],    clockInfo[1], clockInfo2nd[0], clockInfo2nd[1] );

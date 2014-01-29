@@ -148,9 +148,9 @@ typedef enum SrcIntProp {
     siSampleOffsetLatencySOFT = AL_SAMPLE_OFFSET_LATENCY_SOFT,
 
     /* AL_SOFTX_device_clock */#
-    siSampleOffsetDeviceClockSOFT        = AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX,
-    siSampleOffsetLatencyDeviceClockSOFT = AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX,
-    siPlayOnDeviceClockSOFT              = AL_PLAY_ON_DEVICE_CLOCK_SOFTX,
+    siSampleOffsetDeviceClockSOFTX        = AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX,
+    siSampleOffsetLatencyDeviceClockSOFTX = AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX,
+    siPlayOnDeviceClockSOFTX              = AL_PLAY_ON_DEVICE_CLOCK_SOFTX,
 } SrcIntProp;
 
 static ALboolean SetSourcefv(ALsource *Source, ALCcontext *Context, SrcFloatProp prop, const ALfloat *values);
@@ -335,20 +335,20 @@ static ALint Int64ValsByProp(ALenum prop)
         case siDirectFilter:
         case siDirectChannelsSOFT:
         case siDistanceModel:
-        case siPlayOnDeviceClockSOFT:              
+        case siPlayOnDeviceClockSOFTX:              
             return 1;
 
         case siSampleRWOffsetsSOFT:
         case siByteRWOffsetsSOFT:
         case siSampleOffsetLatencySOFT:
-        case siSampleOffsetDeviceClockSOFT:
+        case siSampleOffsetDeviceClockSOFTX:
             return 2;
 
         case siPosition:
         case siVelocity:
         case siDirection:
         case siAuxSendFilter:
-        case siSampleOffsetLatencyDeviceClockSOFT:
+        case siSampleOffsetLatencyDeviceClockSOFTX:
             return 3;
     }
     return 0;
@@ -800,15 +800,11 @@ static ALboolean SetSourcei64v(ALsource *Source, ALCcontext *Context, SrcIntProp
         case siSampleRWOffsetsSOFT:
         case siByteRWOffsetsSOFT:
         case siSampleOffsetLatencySOFT:
-        case siSampleOffsetDeviceClockSOFT:
-        case siSampleOffsetLatencyDeviceClockSOFT:
+        case siSampleOffsetDeviceClockSOFTX:
+        case siSampleOffsetLatencyDeviceClockSOFTX:
+        case siPlayOnDeviceClockSOFTX:
             /* Query only */
             SET_ERROR_AND_RETURN_VALUE(Context, AL_INVALID_OPERATION, AL_FALSE);
-
-        /* 1x int64 */
-        case    AL_PLAY_ON_DEVICE_CLOCK_SOFTX:
-            Source->PlayOnDeviceClock = values[0];
-            return AL_TRUE;
 
         /* 1x int */
         case AL_SOURCE_RELATIVE:
@@ -1172,7 +1168,9 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             values[1] = (ALint64)offsets[0];
             UnlockContext(Context);
             return AL_TRUE;
-
+        case AL_PLAY_ON_DEVICE_CLOCK_SOFTX:
+            values[0] = Source->PlayOnDeviceClock;
+            return AL_TRUE;
 
         case AL_MAX_DISTANCE:
         case AL_ROLLOFF_FACTOR:
@@ -2741,4 +2739,33 @@ ALvoid ReleaseALSources(ALCcontext *Context)
         memset(temp, 0, sizeof(*temp));
         al_free(temp);
     }
+}
+
+AL_API void AL_APIENTRY alSourcePlayTimeSOFTX(ALuint64SOFT time, ALuint source)
+{
+    alSourcePlayTimevSOFTX( time, 1, &source );
+}
+
+AL_API void AL_APIENTRY alSourcePlayTimevSOFTX(ALuint64SOFT time, ALsizei count, const ALuint *sources)
+{
+    ALCcontext *Context;
+    ALsource   *Source;
+
+    Context = GetContextRef();
+    if(!Context) return;
+
+    for( int i=0; i < count; ++i )
+    {
+        if((Source=LookupSource(Context, sources[i])) == NULL)
+        {
+            alSetError(Context, AL_INVALID_NAME);
+        }
+        else
+        {
+            Source->PlayOnDeviceClock = time;
+        }
+    }
+    ALCcontext_DecRef(Context);
+
+    alSourcePlayv( count, sources );
 }
