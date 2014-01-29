@@ -341,19 +341,15 @@ static ALint Int64ValsByProp(ALenum prop)
         case siSampleRWOffsetsSOFT:
         case siByteRWOffsetsSOFT:
         case siSampleOffsetLatencySOFT:
+        case siSampleOffsetDeviceClockSOFT:
             return 2;
 
         case siPosition:
         case siVelocity:
         case siDirection:
         case siAuxSendFilter:
-            return 3;
-
-        case siSampleOffsetDeviceClockSOFT:
-            return 4;
-
         case siSampleOffsetLatencyDeviceClockSOFT:
-            return 5;
+            return 3;
     }
     return 0;
 }
@@ -1162,11 +1158,9 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
 
         case AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX:
             LockContext(Context);
-            values[0] = GetSourceOffset(Source);
-            values[1] = ALCdevice_GetLatency(Context->Device);
-            values[2] = Context->Device->OutputSampleCount;
-            values[3] = Context->Device->Frequency;
-            values[4] = Context->Device->UpdateSize;
+            values[0] = Context->Device->OutputSampleCount;
+            values[1] = GetSourceOffset(Source);
+            values[2] = ALCdevice_GetLatency(Context->Device);
             UnlockContext(Context);
             return AL_TRUE;
         case AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX:
@@ -1174,10 +1168,8 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             updateLen = (ALdouble)Context->Device->UpdateSize /
                         Context->Device->Frequency;
             GetSourceOffsets(Source, AL_SAMPLE_OFFSET, offsets, updateLen);
-            values[0] = (ALint64)offsets[0];
-            values[1] = Context->Device->OutputSampleCount;
-            values[2] = Context->Device->Frequency;
-            values[3] = Context->Device->UpdateSize;
+            values[0] = Context->Device->OutputSampleCount;
+            values[1] = (ALint64)offsets[0];
             UnlockContext(Context);
             return AL_TRUE;
 

@@ -152,23 +152,22 @@ int main(int argc, char **argv)
     /* Play the sound until it finishes. */
     alSourcePlay(Sources[0]);
     PlayingSecond = 0;
-    printf("\rSource, Offset, OutputSampleCount, Frequency, UpdateSize\n" );
+    printf("\rOutputSampleCount 1, Sample Offset 1, OutputSampleCount 2, Sample Offset 2\n" );
     do {
         Sleep(10);
         alGetSourcei(Sources[0], AL_SOURCE_STATE, &state);
 
         alGetSourcei64vSOFT(Sources[0], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo);
         alGetSourcei64vSOFT(Sources[1], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo2nd);
-        if( clockInfo[0] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
+        if( clockInfo[1] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
         {
             // want to play at a point where the second wave cancels first
-            clockToPlay = clockInfo[1] - ( clockInfo[0] % (2 * WAVEHALFPERIOD) ) + ( 5 * WAVEHALFPERIOD );
+            clockToPlay = clockInfo[0] - ( clockInfo[1] % (2 * WAVEHALFPERIOD) ) + ( 5 * WAVEHALFPERIOD );
             alSourcei64SOFT( Sources[1], AL_PLAY_ON_DEVICE_CLOCK_SOFTX, clockToPlay );
             alSourcePlay(Sources[1]);
             PlayingSecond = 1;
         }
-        printf("0, %ld, %ld, %ld, %ld\n", clockInfo[0], clockInfo[1], clockInfo[2], clockInfo[3] );
-        printf("1, %ld, %ld, %ld, %ld\n", clockInfo2nd[0], clockInfo2nd[1], clockInfo2nd[2], clockInfo2nd[3] );
+        printf("%lld, %lld, %lld, %lld\n", clockInfo[0],    clockInfo[1], clockInfo2nd[0], clockInfo2nd[1] );
         fflush(stdout);
         error = alGetError();
 
