@@ -231,9 +231,14 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device);
 
 #ifndef ALC_SOFTX_device_clock
 #define ALC_SOFTX_device_clock 1
-#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1202
-#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1203
-#define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1204
+#define ALC_DEVICE_CLOCK_SOFTX                                 0x1600
+#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1601
+#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1602
+#define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1603
+typedef void (ALC_APIENTRY*LPALCGENINTEGER64VSOFTX)(ALCdevice *device, ALCenum pname, ALsizei size, ALint64SOFT *values);
+#ifdef AL_ALEXT_PROTOTYPES
+ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, ALint64SOFT *values);
+#endif
 #endif
 
 #ifdef IN_IDE_PARSER

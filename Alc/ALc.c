@@ -3560,3 +3560,48 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
     }
     if(device) ALCdevice_DecRef(device);
 }
+
+/************************************************
+ * ALC device clock functions
+ ************************************************/
+/* alcGetInteger64vSOFT
+ *
+ * Get 64bit Integer 
+ */
+ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, ALint64SOFT *data)
+{
+    ALCint* data32;
+
+    device = VerifyDevice(device);
+
+    if(!size || data == NULL)
+    {
+        alcSetError(device, ALC_INVALID_VALUE);
+        if(device) ALCdevice_DecRef(device);
+        return;
+    }
+
+    switch( pname )
+    {
+    case AL_PLAY_ON_DEVICE_CLOCK_SOFTX:
+         if(!(device=VerifyDevice(device)) || device->Type != Playback)
+         {
+            alcSetError(device, ALC_INVALID_DEVICE);
+         }
+         ALCdevice_Lock(device);
+         data[0] = device->OutputSampleCount;
+         ALCdevice_Unlock(device);
+       break;
+    default:
+        data32 = (ALint*)data;   // can do this as 64 > 32
+        data32 += size;                  // use second half of values to store values so we can restore to array
+        alcGetIntegerv( device ,pname, size, data32 );
+        for(ALsizei i=0; i<size; ++i )
+        {
+            data[i] = data32[i];
+        }
+        break;
+    }
+
+    if(device) ALCdevice_DecRef(device);
+}

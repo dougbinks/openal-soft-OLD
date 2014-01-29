@@ -174,6 +174,11 @@ int main(int argc, char **argv)
     } while(error == AL_NO_ERROR && state == AL_PLAYING);
     printf("\n");
 
+    // check device sample output count without source
+    alcGetInteger64vSOFTX( pALDevice, 1, clockInfo );
+    printf("Total samples output: %lld\n", clockInfo[0]);
+
+
     /* All done. Delete resources, and close OpenAL. */
     alDeleteSources(2, &Sources);
     alDeleteBuffers(1, &Buffer);
