@@ -117,7 +117,8 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
         // check if need to trigger
         if( Device->OutputSampleCount + SamplesToDo >= Source->PlayOnDeviceClock )
         {
-            OutPosOffsetAligned = (ALint)( Source->PlayOnDeviceClock - Device->OutputSampleCount );
+            ALuint64 OutPosOffset64 = Source->PlayOnDeviceClock - Device->OutputSampleCount;
+            OutPosOffsetAligned = (ALint)OutPosOffset64;
             if( OutPosOffsetAligned < 0 )
             {
                 OutPosOffsetAligned = 0;
@@ -184,12 +185,6 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             ALfloat *SrcData = Device->SampleData1;
             ALfloat *ResampledData = Device->SampleData2;
             ALuint SrcDataSize = 0;
-
-            if( OutPosOffsetUnalignedPortion && ( OutPosOffsetAligned == OutPos))
-            {
-                SilenceData(&SrcData[SrcDataSize], OutPosOffsetUnalignedPortion);
-                SrcDataSize += OutPosOffsetUnalignedPortion;
-            }
 
             if(Source->SourceType == AL_STATIC)
             {
@@ -351,6 +346,13 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
                 }
             }
 
+            // output mixers need an aligned output, so move output and add silence
+            if( OutPosOffsetUnalignedPortion )
+            {
+                SilenceData(ResampledData, OutPosOffsetUnalignedPortion);
+                ResampledData += OutPosOffsetUnalignedPortion;
+            }
+
             /* Now resample, then filter and mix to the appropriate outputs. */
             Source->Params.Resample(&SrcData[BufferPrePadding], DataPosFrac,
                                     increment, ResampledData, DstBufferSize);
@@ -377,13 +379,14 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             }
         }
         /* Update positions */
-        for(j = 0;j < (DstBufferSize - OutPosOffsetUnalignedPortion);j++)
+        for(j = 0;j < DstBufferSize - OutPosOffsetUnalignedPortion;j++)
         {
             DataPosFrac += increment;
             DataPosInt  += DataPosFrac>>FRACTIONBITS;
             DataPosFrac &= FRACTIONMASK;
         }
         OutPos += DstBufferSize;
+        OutPosOffsetUnalignedPortion = 0;
 
         /* Handle looping sources */
         while(1)
