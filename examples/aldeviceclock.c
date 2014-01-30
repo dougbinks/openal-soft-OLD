@@ -36,8 +36,10 @@
 #include "alMain.h" // move to alext.h when fully approved
 
 
-static LPALGETSOURCEI64VSOFT alGetSourcei64vSOFT;
-static LPALGETSOURCEI64VSOFT alSourcei64SOFT;
+static LPALGETSOURCEI64VSOFT   alGetSourcei64vSOFT;
+static LPALGETSOURCEI64VSOFT   alSourcei64SOFT;
+static LPALSOURCEPLAYTIMESOFTX alSourcePlayTimevSOFTX;
+static LPALCGENINTEGER64VSOFTX alcGetInteger64vSOFTX;
 
 #define WAVEHALFPERIOD 276
 #define BUFFSIZE       102400
@@ -81,7 +83,6 @@ int main(int argc, char **argv)
     ALint64SOFT clockInfo2nd[4];
     ALint64SOFT clockToPlay;
     ALenum state;
-    ALenum state2nd;
     ALenum error;
     ALCint freq;
     ALuint Buffer;
@@ -124,7 +125,9 @@ int main(int argc, char **argv)
 #define LOAD_PROC(x)  ((x) = alGetProcAddress(#x))
     LOAD_PROC(alGetSourcei64vSOFT);
     LOAD_PROC(alSourcei64SOFT);
+    LOAD_PROC(alSourcePlayTimevSOFTX);
 #undef LOAD_PROC
+    alcGetInteger64vSOFTX = alcGetProcAddress(pALDevice, "alcGetInteger64vSOFTX");
 
     /* Load the sound into a buffer. */
     for(int i = 0; i < BUFFSIZE; ++i )
@@ -174,7 +177,7 @@ int main(int argc, char **argv)
     printf("\n");
 
     // check device sample output count without source
-    alcGetInteger64vSOFTX( pALDevice, 1, clockInfo );
+    alcGetInteger64vSOFTX( pALDevice, ALC_DEVICE_CLOCK_SOFTX, 1, clockInfo );
     printf("Total samples output: %lld\n", clockInfo[0]);
 
 

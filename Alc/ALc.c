@@ -153,6 +153,8 @@ static const ALCfunction alcFunctions[] = {
     DECL(alcDevicePauseSOFT),
     DECL(alcDeviceResumeSOFT),
 
+    DECL(alcGetInteger64vSOFTX),
+
     DECL(alEnable),
     DECL(alDisable),
     DECL(alIsEnabled),
@@ -321,6 +323,10 @@ static const ALCfunction alcFunctions[] = {
     DECL(alGetInteger64SOFT),
     DECL(alGetInteger64vSOFT),
     DECL(alLoadSoundfontSOFT),
+
+    DECL(alSourcePlayTimeSOFTX),
+    DECL(alSourcePlayTimevSOFTX),
+
 
     { NULL, NULL }
 };
@@ -3583,7 +3589,7 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname
 
     switch( pname )
     {
-    case AL_PLAY_ON_DEVICE_CLOCK_SOFTX:
+    case ALC_DEVICE_CLOCK_SOFTX:
          if(!(device=VerifyDevice(device)) || device->Type != Playback)
          {
             alcSetError(device, ALC_INVALID_DEVICE);
