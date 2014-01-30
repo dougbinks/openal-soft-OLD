@@ -38,10 +38,10 @@
 
 static LPALGETSOURCEI64VSOFT   alGetSourcei64vSOFT;
 static LPALGETSOURCEI64VSOFT   alSourcei64SOFT;
-static LPALSOURCEPLAYTIMESOFTX alSourcePlayTimevSOFTX;
+static LPALSOURCEPLAYTIMESOFTX alSourcePlayTimeSOFTX;
 static LPALCGENINTEGER64VSOFTX alcGetInteger64vSOFTX;
 
-#define WAVEHALFPERIOD 276
+#define WAVEHALFPERIOD 273
 #define BUFFSIZE       102400
 
 static ALCdevice*          pALDevice;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 #define LOAD_PROC(x)  ((x) = alGetProcAddress(#x))
     LOAD_PROC(alGetSourcei64vSOFT);
     LOAD_PROC(alSourcei64SOFT);
-    LOAD_PROC(alSourcePlayTimevSOFTX);
+    LOAD_PROC(alSourcePlayTimeSOFTX);
 #undef LOAD_PROC
     alcGetInteger64vSOFTX = alcGetProcAddress(pALDevice, "alcGetInteger64vSOFTX");
 
@@ -165,7 +165,8 @@ int main(int argc, char **argv)
         if( clockInfo[1] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
         {
             // want to play at a point where the second wave cancels first
-            clockToPlay = clockInfo[0] - ( clockInfo[1] % (2 * WAVEHALFPERIOD) ) + ( 51 * WAVEHALFPERIOD );
+            clockToPlay =  51 * WAVEHALFPERIOD - ( clockInfo[1] % (2 * WAVEHALFPERIOD) );
+            clockToPlay += clockInfo[0];
             alSourcePlayTimeSOFTX(clockToPlay, Sources[1]);
             PlayingSecond = 1;
         }
@@ -182,7 +183,7 @@ int main(int argc, char **argv)
 
 
     /* All done. Delete resources, and close OpenAL. */
-    alDeleteSources(2, &Sources);
+    alDeleteSources(2, &Sources[0]);
     alDeleteBuffers(1, &Buffer);
 
     CloseAL();
