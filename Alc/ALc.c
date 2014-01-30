@@ -2961,7 +2961,9 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->UpdateSize = 1024;
 
     //Set output sample clock data
-    device->OutputSampleCount = 0;
+    device->DeviceClockTimeOffset = 0;
+    device->OutputSampleCount     = 0;
+    device->OutputSampleCountFreq = device->Frequency;
 
     if(!PlaybackBackend.getFactory)
     {
@@ -3595,7 +3597,7 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname
             alcSetError(device, ALC_INVALID_DEVICE);
          }
          ALCdevice_Lock(device);
-         data[0] = device->OutputSampleCount;
+         data[0] = device->DeviceClockTimeOffset + ( device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / device->OutputSampleCountFreq;
          ALCdevice_Unlock(device);
        break;
     default:

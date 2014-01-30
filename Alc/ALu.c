@@ -1038,6 +1038,15 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
             memset(device->DryBuffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
         ALCdevice_Lock(device);
+
+        // ensure device timer can cope with changes to frequency, yet has sample accurate timing.
+        if( device->OutputSampleCountFreq != device->Frequency )
+        {
+            device->DeviceClockTimeOffset += ( device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / device->OutputSampleCountFreq;
+            device->OutputSampleCount = 0;
+            device->OutputSampleCountFreq = device->Frequency;
+        }
+
         V(device->Synth,process)(SamplesToDo, device->DryBuffer);
         
         ctx = device->ContextList;

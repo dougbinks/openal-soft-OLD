@@ -97,7 +97,7 @@ static void DoFilter(ALfilterState *filter, ALfloat *restrict dst, const ALfloat
 ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
 {
     ALbufferlistitem *BufferListItem;
-    ALuint DataPosInt, DataPosFrac;
+    ALuint DataPosInt, DataPosFrac, DataPosFracOffset;;
     ALuint BuffersPlayed;
     ALboolean Looping;
     ALuint increment;
@@ -108,21 +108,30 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     ALuint SampleSize;
     ALint64 DataSize64;
     ALuint chan, j;
-    ALint OutPosOffsetAligned, OutPosOffsetUnalignedPortion;
+    ALuint OutPosOffsetAligned, OutPosOffsetUnalignedPortion;
 
     OutPosOffsetAligned          = 0;
     OutPosOffsetUnalignedPortion = 0;
     if( Source->PlayOnDeviceClock )
     {
         // check if need to trigger
-        if( Device->OutputSampleCount + SamplesToDo >= Source->PlayOnDeviceClock )
+        if( Device->DeviceClockTimeOffset + ( ( Device->OutputSampleCount + SamplesToDo ) * DEVCLK_TIMEVALS_PERSECOND ) / Device->Frequency >= Source->PlayOnDeviceClock )
         {
-            ALuint64 OutPosOffset64 = Source->PlayOnDeviceClock - Device->OutputSampleCount;
-            OutPosOffsetAligned = (ALint)OutPosOffset64;
-            if( OutPosOffsetAligned < 0 )
+            ALint64 OutPosOffset64 = Source->PlayOnDeviceClock - Device->DeviceClockTimeOffset - ( Device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / Device->Frequency;
+            if( OutPosOffset64 < 0 )
             {
-                OutPosOffsetAligned = 0;
+                OutPosOffset64 = 0;
             }
+            OutPosOffset64 = ( ( OutPosOffset64 << FRACTIONBITS ) * Device->Frequency ) / DEVCLK_TIMEVALS_PERSECOND; // convert time to samples in fractional time
+            OutPosOffsetAligned = (ALuint)OutPosOffset64 >> FRACTIONBITS;
+            DataPosFracOffset = (ALuint)( OutPosOffset64 - ( OutPosOffsetAligned << FRACTIONBITS ) );
+            if( DataPosFracOffset < Source->Params.Step )
+            {
+                OutPosOffsetAligned = (ALuint)( OutPosOffset64 + Source->Params.Step / 2 ) >> FRACTIONBITS;
+                DataPosFracOffset   = 0;
+            }
+            DataPosFracOffset -= DataPosFracOffset % Source->Params.Step; // ensure the fractional component is in units of the step
+
             OutPosOffsetUnalignedPortion = OutPosOffsetAligned % 4; // SIMD align
             OutPosOffsetAligned -= OutPosOffsetUnalignedPortion;
             Source->PlayOnDeviceClock = 0; //reset

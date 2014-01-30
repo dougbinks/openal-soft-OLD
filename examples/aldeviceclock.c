@@ -166,11 +166,12 @@ int main(int argc, char **argv)
         {
             // want to play at a point where the second wave cancels first
             clockToPlay =  51 * WAVEHALFPERIOD - ( clockInfo[1] % (2 * WAVEHALFPERIOD) );
+            clockToPlay = ( clockToPlay * DEVCLK_TIMEVALS_PERSECOND ) / freq;
             clockToPlay += clockInfo[0];
             alSourcePlayTimeSOFTX(clockToPlay, Sources[1]);
             PlayingSecond = 1;
         }
-        printf("%lld, %lld, %lld, %lld\n", clockInfo[0],    clockInfo[1], clockInfo2nd[0], clockInfo2nd[1] );
+        printf("%lld, %lld, %lld, %lld\n", clockInfo[0], clockInfo[1], clockInfo2nd[0], clockInfo2nd[1] );
         fflush(stdout);
         error = alGetError();
 

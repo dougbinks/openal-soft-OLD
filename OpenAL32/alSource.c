@@ -1154,7 +1154,7 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
 
         case AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX:
             LockContext(Context);
-            values[0] = Context->Device->OutputSampleCount;
+            values[0] = Context->Device->DeviceClockTimeOffset + ( Context->Device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / Context->Device->OutputSampleCountFreq;
             values[1] = GetSourceOffset(Source);
             values[2] = ALCdevice_GetLatency(Context->Device);
             UnlockContext(Context);
@@ -1164,7 +1164,7 @@ static ALboolean GetSourcei64v(const ALsource *Source, ALCcontext *Context, SrcI
             updateLen = (ALdouble)Context->Device->UpdateSize /
                         Context->Device->Frequency;
             GetSourceOffsets(Source, AL_SAMPLE_OFFSET, offsets, updateLen);
-            values[0] = Context->Device->OutputSampleCount;
+            values[0] = Context->Device->DeviceClockTimeOffset + ( Context->Device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / Context->Device->OutputSampleCountFreq;
             values[1] = (ALint64)offsets[0];
             UnlockContext(Context);
             return AL_TRUE;
