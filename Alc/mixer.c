@@ -112,26 +112,27 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
 
     OutPosOffsetAligned          = 0;
     OutPosOffsetUnalignedPortion = 0;
+    DataPosFracOffset            = 0;
     if( Source->PlayOnDeviceClock )
     {
         // check if need to trigger
-        if( Device->DeviceClockTimeOffset + ( ( Device->OutputSampleCount + SamplesToDo ) * DEVCLK_TIMEVALS_PERSECOND ) / Device->Frequency >= Source->PlayOnDeviceClock )
+        if( Device->DeviceClockTimens + ((ALuint64)SamplesToDo * DEVCLK_TIMEVALS_PERSECOND) / Device->Frequency >= Source->PlayOnDeviceClock )
         {
-            ALint64 OutPosOffset64 = Source->PlayOnDeviceClock - Device->DeviceClockTimeOffset - ( Device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / Device->Frequency;
+            ALint64 OutPosOffset64 = Source->PlayOnDeviceClock - Device->DeviceClockTimens;
             if( OutPosOffset64 < 0 )
             {
                 OutPosOffset64 = 0;
             }
             OutPosOffset64 = ( ( OutPosOffset64 << FRACTIONBITS ) * Device->Frequency ) / DEVCLK_TIMEVALS_PERSECOND; // convert time to samples in fractional time
             OutPosOffsetAligned = (ALuint)OutPosOffset64 >> FRACTIONBITS;
-            DataPosFracOffset = (ALuint)( OutPosOffset64 - ( OutPosOffsetAligned << FRACTIONBITS ) );
-            if( DataPosFracOffset < Source->Params.Step )
+            DataPosFracOffset = (ALuint)( OutPosOffset64 - ( (ALuint64)OutPosOffsetAligned << FRACTIONBITS ) );
+            DataPosFracOffset = ( DataPosFracOffset * Source->Params.Step ) >> FRACTIONBITS; // convert to source samples
+            if( Source->Params.Step == FRACTIONONE )
             {
-                OutPosOffsetAligned = (ALuint)( OutPosOffset64 + Source->Params.Step / 2 ) >> FRACTIONBITS;
-                DataPosFracOffset   = 0;
+                // align with device clock
+                OutPosOffsetAligned += ( DataPosFracOffset + FRACTIONONE/2 ) >> FRACTIONBITS;
+                DataPosFracOffset = 0;
             }
-            DataPosFracOffset -= DataPosFracOffset % Source->Params.Step; // ensure the fractional component is in units of the step
-
             OutPosOffsetUnalignedPortion = OutPosOffsetAligned % 4; // SIMD align
             OutPosOffsetAligned -= OutPosOffsetUnalignedPortion;
             Source->PlayOnDeviceClock = 0; //reset
@@ -159,11 +160,13 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
     for(j = 0;j < BuffersPlayed;j++)
         BufferListItem = BufferListItem->next;
 
+
     OutPos = OutPosOffsetAligned;
     do {
-        const ALuint BufferPrePadding = ResamplerPrePadding[Resampler];
+        const ALuint BufferPrePadding = ResamplerPrePadding[Resampler]  + ( DataPosFracOffset ? 1 : 0 ); 
         const ALuint BufferPadding = ResamplerPadding[Resampler];
         ALuint SrcBufferSize, DstBufferSize;
+
 
         /* Figure out how many buffer samples will be needed */
         DataSize64  = SamplesToDo-OutPos+1;
@@ -362,9 +365,19 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
                 ResampledData += OutPosOffsetUnalignedPortion;
             }
 
-            /* Now resample, then filter and mix to the appropriate outputs. */
-            Source->Params.Resample(&SrcData[BufferPrePadding], DataPosFrac,
-                                    increment, ResampledData, DstBufferSize);
+            if( DataPosFracOffset )
+            {
+                /* Now resample, then filter and mix to the appropriate outputs. */
+                ALuint fraction = FRACTIONONE - DataPosFracOffset;
+                Source->Params.Resample(&SrcData[BufferPrePadding - 1], fraction,
+                                        increment, ResampledData, DstBufferSize+1);
+            }
+            else
+            {
+                /* Now resample, then filter and mix to the appropriate outputs. */
+                Source->Params.Resample(&SrcData[BufferPrePadding], DataPosFrac,
+                                        increment, ResampledData, DstBufferSize);
+            }
 
             {
                 DirectParams *directparms = &Source->Params.Direct;
@@ -388,6 +401,11 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             }
         }
         /* Update positions */
+        if( DataPosFracOffset )
+        {
+            DataPosFrac = ( FRACTIONONE - DataPosFracOffset + increment ) & FRACTIONMASK;
+            ++OutPosOffsetUnalignedPortion; // reduce the amount we add to DataPos
+        }
         for(j = 0;j < DstBufferSize - OutPosOffsetUnalignedPortion;j++)
         {
             DataPosFrac += increment;
@@ -395,7 +413,9 @@ ALvoid MixSource(ALsource *Source, ALCdevice *Device, ALuint SamplesToDo)
             DataPosFrac &= FRACTIONMASK;
         }
         OutPos += DstBufferSize;
+
         OutPosOffsetUnalignedPortion = 0;
+        DataPosFracOffset = 0;
 
         /* Handle looping sources */
         while(1)

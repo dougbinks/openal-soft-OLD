@@ -154,6 +154,7 @@ static const ALCfunction alcFunctions[] = {
     DECL(alcDeviceResumeSOFT),
 
     DECL(alcGetInteger64vSOFTX),
+    DECL(alcGetDoublevSOFTX),
 
     DECL(alEnable),
     DECL(alDisable),
@@ -2961,9 +2962,8 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
     device->UpdateSize = 1024;
 
     //Set output sample clock data
-    device->DeviceClockTimeOffset = 0;
-    device->OutputSampleCount     = 0;
-    device->OutputSampleCountFreq = device->Frequency;
+    device->DeviceClockTimens         = 0;
+    device->DeviceClockTimensFraction = 0.0;
 
     if(!PlaybackBackend.getFactory)
     {
@@ -3572,7 +3572,8 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device)
 /************************************************
  * ALC device clock functions
  ************************************************/
-/* alcGetInteger64vSOFT
+
+/* alcGetInteger64vSOFTX
  *
  * Get 64bit Integer 
  */
@@ -3597,7 +3598,7 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname
             alcSetError(device, ALC_INVALID_DEVICE);
          }
          ALCdevice_Lock(device);
-         data[0] = device->DeviceClockTimeOffset + ( device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / device->OutputSampleCountFreq;
+         data[0] = device->DeviceClockTimens;
          ALCdevice_Unlock(device);
        break;
     default:
@@ -3609,6 +3610,47 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname
             data[i] = data32[i];
         }
         break;
+    }
+
+    if(device) ALCdevice_DecRef(device);
+}
+
+/* alcGetDoublevSOFTX
+ *
+ * Get double
+ */
+ALC_API void ALC_APIENTRY alcGetDoublevSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, double *data)
+{
+    ALCint* data32;
+
+    device = VerifyDevice(device);
+
+    if(!size || data == NULL)
+    {
+        alcSetError(device, ALC_INVALID_VALUE);
+        if(device) ALCdevice_DecRef(device);
+        return;
+    }
+    if( device==VerifyDevice(device) && device->Type == Playback )
+    {
+        switch( pname )
+        {
+        case ALC_DEVICE_CLOCK_SOFTX:
+             ALCdevice_Lock(device);
+             data[0] = (double)device->DeviceClockTimens / (double)DEVCLK_TIMEVALS_PERSECOND;
+             ALCdevice_Unlock(device);
+           break;
+        case ALC_DEVICE_CONVERT_ACTUALFREQUENCY:
+             data[0] = floor( FRACTIONONE * data[0] / (double)device->Frequency ) * (double)device->Frequency / (double)FRACTIONONE;
+           break;
+        default:
+            alcSetError(device, ALC_INVALID_ENUM);
+            break;
+        }
+    }
+    else
+    {
+        alcSetError(device, ALC_INVALID_DEVICE);
     }
 
     if(device) ALCdevice_DecRef(device);

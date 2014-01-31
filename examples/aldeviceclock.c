@@ -40,8 +40,9 @@ static LPALGETSOURCEI64VSOFT   alGetSourcei64vSOFT;
 static LPALGETSOURCEI64VSOFT   alSourcei64SOFT;
 static LPALSOURCEPLAYTIMESOFTX alSourcePlayTimeSOFTX;
 static LPALCGENINTEGER64VSOFTX alcGetInteger64vSOFTX;
+static LPALCGENDOUBLEVSOFTX    alcGetDoublevSOFTX;
 
-#define WAVEHALFPERIOD 273
+#define WAVEHALFPERIOD 129
 #define BUFFSIZE       102400
 
 static ALCdevice*          pALDevice;
@@ -79,17 +80,19 @@ int OpenAL(void)
 
 int main(int argc, char **argv)
 {
-    ALint64SOFT clockInfo[4];
-    ALint64SOFT clockInfo2nd[4];
+    ALint64SOFT clockInfo[3];
+    ALint64SOFT clockInfo2nd[3];
     ALint64SOFT clockToPlay;
     ALenum state;
     ALenum error;
-    ALCint freq;
+    ALCint deviceFreq;
     ALuint Buffer;
     ALuint Sources[2];
     float  BuffSource[BUFFSIZE];
     int PlayingSecond;
-
+    ALint64SOFT alignError;
+    const ALint64SOFT halfPeriod =  (ALint64SOFT)WAVEHALFPERIOD << 32;
+    double frequency;
 
 
     /* Initialize OpenAL with the default device. */
@@ -128,6 +131,7 @@ int main(int argc, char **argv)
     LOAD_PROC(alSourcePlayTimeSOFTX);
 #undef LOAD_PROC
     alcGetInteger64vSOFTX = alcGetProcAddress(pALDevice, "alcGetInteger64vSOFTX");
+    alcGetDoublevSOFTX    = alcGetProcAddress(pALDevice, "alcGetDoublevSOFTX");
 
     /* Load the sound into a buffer. */
     for(int i = 0; i < BUFFSIZE; ++i )
@@ -142,8 +146,10 @@ int main(int argc, char **argv)
         }
     }
     
-    alcGetIntegerv( pALDevice, ALC_FREQUENCY, 1, &freq );
-    alBufferData( Buffer, AL_FORMAT_MONO_FLOAT32, BuffSource, sizeof( BuffSource ), freq );
+    alcGetIntegerv( pALDevice, ALC_FREQUENCY, 1, &deviceFreq );
+    frequency = 44100;
+    alBufferData( Buffer, AL_FORMAT_MONO_FLOAT32, BuffSource, sizeof( BuffSource ), (ALsizei)frequency );
+    alcGetDoublevSOFTX( pALDevice, ALC_DEVICE_CONVERT_ACTUALFREQUENCY, 1, &frequency );
     for( int b = 0; b < 2; ++b )
     {
         alSourcei(Sources[b], AL_SOURCE_RELATIVE, AL_TRUE);
@@ -155,19 +161,20 @@ int main(int argc, char **argv)
     /* Play the sound until it finishes. */
     alSourcePlay(Sources[0]);
     PlayingSecond = 0;
-    printf("\rOutputSampleCount 1, Sample Offset 1, OutputSampleCount 2, Sample Offset 2\n" );
+    printf("\rOutputSampleCount 1, Sample Offset 1, OutputSampleCount 2, Sample Offset 2, alignment error\n" );
     do {
         Sleep(10);
         alGetSourcei(Sources[0], AL_SOURCE_STATE, &state);
 
-        alGetSourcei64vSOFT(Sources[0], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo);
-        alGetSourcei64vSOFT(Sources[1], AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX, clockInfo2nd);
-        if( clockInfo[1] + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
+        alGetSourcei64vSOFT(Sources[0], AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX, clockInfo);
+        alGetSourcei64vSOFT(Sources[1], AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX, clockInfo2nd);
+        if( (clockInfo[1] >> 32) + 2*WAVEHALFPERIOD > BUFFSIZE / 4 && !PlayingSecond )
         {
             // want to play at a point where the second wave cancels first
-            clockToPlay =  51 * WAVEHALFPERIOD - ( clockInfo[1] % (2 * WAVEHALFPERIOD) );
-            clockToPlay = ( clockToPlay * DEVCLK_TIMEVALS_PERSECOND ) / freq;
-            clockToPlay += clockInfo[0];
+            double interval;
+            clockToPlay =  51 * halfPeriod - ( clockInfo[1] % (2 * halfPeriod) );
+            interval = (double)clockToPlay * (double)DEVCLK_TIMEVALS_PERSECOND /  ((ALint64SOFT)1 << 32) / frequency;
+            clockToPlay = clockInfo[0] + (ALint64SOFT)interval;
             alSourcePlayTimeSOFTX(clockToPlay, Sources[1]);
             PlayingSecond = 1;
         }

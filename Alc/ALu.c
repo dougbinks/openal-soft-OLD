@@ -1028,6 +1028,7 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
     ALCcontext *ctx;
     FPUCtl oldMode;
     ALuint i, c;
+    double intpart;
 
     SetMixerFPUMode(&oldMode);
 
@@ -1038,14 +1039,6 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
             memset(device->DryBuffer[c], 0, SamplesToDo*sizeof(ALfloat));
 
         ALCdevice_Lock(device);
-
-        // ensure device timer can cope with changes to frequency, yet has sample accurate timing.
-        if( device->OutputSampleCountFreq != device->Frequency )
-        {
-            device->DeviceClockTimeOffset += ( device->OutputSampleCount * DEVCLK_TIMEVALS_PERSECOND ) / device->OutputSampleCountFreq;
-            device->OutputSampleCount = 0;
-            device->OutputSampleCountFreq = device->Frequency;
-        }
 
         V(device->Synth,process)(SamplesToDo, device->DryBuffer);
         
@@ -1076,13 +1069,9 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
                 if(!DeferUpdates && (ExchangeInt(&(*src)->NeedsUpdate, AL_FALSE) ||
                                      UpdateSources))
                     ALsource_Update(*src, ctx);
-
                 MixSource(*src, device, SamplesToDo);
                 src++;
             }
-
-            // Store output sample count for device timing after mix
-            device->OutputSampleCount += SamplesToDo;
 
             /* effect slot processing */
             slot = ctx->ActiveEffectSlots;
@@ -1114,6 +1103,11 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
 
             ctx = ctx->next;
         }
+
+        // Store output sample count for device timing after mix
+        device->DeviceClockTimensFraction +=  (double)SamplesToDo * (double)DEVCLK_TIMEVALS_PERSECOND / (double)device->Frequency;
+        device->DeviceClockTimensFraction  = modf( device->DeviceClockTimensFraction, &intpart );
+        device->DeviceClockTimens += (ALuint64)intpart;
 
         slot = &device->DefaultSlot;
         if(*slot != NULL)

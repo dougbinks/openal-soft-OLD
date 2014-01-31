@@ -232,15 +232,18 @@ ALC_API void ALC_APIENTRY alcDeviceResumeSOFT(ALCdevice *device);
 #ifndef ALC_SOFTX_device_clock
 #define ALC_SOFTX_device_clock 1
 #define ALC_DEVICE_CLOCK_SOFTX                                 0x1600
-#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1601
-#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1602
-#define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1603
+#define ALC_DEVICE_CONVERT_ACTUALFREQUENCY                         0x1601
+#define AL_SAMPLE_OFFSET_DEVICE_CLOCK_SOFTX                    0x1602
+#define AL_SAMPLE_OFFSET_LATENCY_DEVICE_CLOCK_SOFTX            0x1603
+#define AL_PLAY_ON_DEVICE_CLOCK_SOFTX                          0x1604
 #define DEVCLK_TIMEVALS_PERSECOND 1000000000
 typedef void (ALC_APIENTRY*LPALCGENINTEGER64VSOFTX)(ALCdevice *device, ALCenum pname, ALsizei size, ALint64SOFT *values);
+typedef void (ALC_APIENTRY*LPALCGENDOUBLEVSOFTX)(ALCdevice *device, ALCenum pname, ALsizei size, double *values);
 typedef void (AL_APIENTRY*LPALSOURCEPLAYTIMESOFTX)(ALuint64SOFT time, ALuint source);
 typedef void (AL_APIENTRY*LPALSOURCEPLAYTIMEVSOFTX)(ALuint64SOFT time, ALsizei count, const ALuint *sources);
 #ifdef AL_ALEXT_PROTOTYPES
 ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, ALint64SOFT *values);
+ALC_API void ALC_APIENTRY alcGetDoublevSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, double *values);
 AL_API void AL_APIENTRY alSourcePlayTimeSOFTX(ALuint64SOFT time, ALuint source);
 AL_API void AL_APIENTRY alSourcePlayTimevSOFTX(ALuint64SOFT time, ALsizei count, const ALuint *sources);
 #endif
@@ -662,9 +665,8 @@ struct ALCdevice_struct
     void         *ExtraData; // For the backend's use
 
     // device timing information
-    ALuint64  DeviceClockTimeOffset;
-    ALuint64  OutputSampleCount;
-    ALuint    OutputSampleCountFreq;
+    ALuint64  DeviceClockTimens;
+    double    DeviceClockTimensFraction;
 
     ALCdevice *volatile next;
 };
