@@ -666,7 +666,6 @@ struct ALCdevice_struct
 
     // device timing information
     ALuint64  DeviceClockTimens;
-    double    DeviceClockTimensFraction;
 
     ALCdevice *volatile next;
 };

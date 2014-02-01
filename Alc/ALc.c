@@ -2963,7 +2963,6 @@ ALC_API ALCdevice* ALC_APIENTRY alcOpenDevice(const ALCchar *deviceName)
 
     //Set output sample clock data
     device->DeviceClockTimens         = 0;
-    device->DeviceClockTimensFraction = 0.0;
 
     if(!PlaybackBackend.getFactory)
     {
@@ -3621,8 +3620,6 @@ ALC_API void ALC_APIENTRY alcGetInteger64vSOFTX(ALCdevice *device, ALCenum pname
  */
 ALC_API void ALC_APIENTRY alcGetDoublevSOFTX(ALCdevice *device, ALCenum pname, ALsizei size, double *data)
 {
-    ALCint* data32;
-
     device = VerifyDevice(device);
 
     if(!size || data == NULL)

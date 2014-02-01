@@ -1105,9 +1105,7 @@ ALvoid aluMixData(ALCdevice *device, ALvoid *buffer, ALsizei size)
         }
 
         // Store output sample count for device timing after mix
-        device->DeviceClockTimensFraction +=  (double)SamplesToDo * (double)DEVCLK_TIMEVALS_PERSECOND / (double)device->Frequency;
-        device->DeviceClockTimensFraction  = modf( device->DeviceClockTimensFraction, &intpart );
-        device->DeviceClockTimens += (ALuint64)intpart;
+        device->DeviceClockTimens += (ALuint64) ( (double)SamplesToDo * (double)DEVCLK_TIMEVALS_PERSECOND / (double)device->Frequency );
 
         slot = &device->DefaultSlot;
         if(*slot != NULL)
